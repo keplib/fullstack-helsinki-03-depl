@@ -73,6 +73,10 @@ app.delete('/api/persons/:id', (req, res) => {
     res.status(204).end()
 });
 
+app.get('/test', (req, res) => {
+    res.send('test root is working!');
+});
+
 app.post('/api/persons', (req, res) => {
     const body = req.body;
 
