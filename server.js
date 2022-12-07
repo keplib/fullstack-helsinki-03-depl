@@ -104,7 +104,6 @@ app.put('/api/persons/:id', (req, res) => {
     let entryIndex = persons.indexOf(entryToUpdate)
     entryToUpdate = { ...entryToUpdate, number: req.body.number }
     persons[entryIndex] = entryToUpdate
-    console.log(persons);
     res.send('Updated the entry');
     res.status(204)
 
