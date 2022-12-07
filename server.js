@@ -3,6 +3,7 @@ const cors = require('cors');
 const PORT = process.env.PORT || 3000;
 const app = express();
 
+
 const requestLogger = (request, response, next) => {
     console.log('Method:', request.method)
     console.log('Path:  ', request.path)
@@ -94,6 +95,17 @@ app.post('/api/persons', (req, res) => {
     persons.push(newPerson);
     res.status(200);
     res.send('OK, got the data')
+
+});
+
+app.put('/api/persons/:id', (req, res) => {
+    const updateID = req.params.id;
+    let entryToUpdate = persons.filter(person => person.id === Number(req.params.id))[0];
+    let entryIndex = persons.indexOf(entryToUpdate)
+    entryToUpdate = { ...entryToUpdate, number: req.body.number }
+    persons[entryIndex] = entryToUpdate
+    res.send('Updated the entry');
+    res.status(204)
 
 })
 
