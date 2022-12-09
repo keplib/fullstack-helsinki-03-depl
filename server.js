@@ -12,14 +12,11 @@ const requestLogger = (request, response, next) => {
     next()
 }
 
-
-app.use(express.static('dist'));
 app.use(cors());
 app.use(express.json());
 app.use(requestLogger);
 
 const now = new Date();
-
 
 // Function to generate a random number for id
 const generateRandomID = () => {
@@ -99,11 +96,12 @@ app.post('/api/persons', (req, res) => {
 });
 
 app.put('/api/persons/:id', (req, res) => {
-    const updateID = req.params.id;
     let entryToUpdate = persons.filter(person => person.id === Number(req.params.id))[0];
     let entryIndex = persons.indexOf(entryToUpdate)
+
     entryToUpdate = { ...entryToUpdate, number: req.body.number }
     persons[entryIndex] = entryToUpdate
+
     res.send('Updated the entry');
     res.status(204)
 
