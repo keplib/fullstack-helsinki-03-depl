@@ -1,7 +1,17 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const cors = require('cors');
+require('dotenv').config();
 const PORT = process.env.PORT || 3000;
+const URL = process.env.DB_URL;
+
 const app = express();
+const phonebookSchema = new mongoose.Schema({
+    name: String,
+    number: String,
+})
+
+const PhonebookEntry = mongoose.model('Entry', phonebookSchema);
 
 
 const requestLogger = (request, response, next) => {
@@ -52,7 +62,14 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/persons', (req, res) => {
-    res.send(persons);
+    mongoose.connect(URL)
+        .then((result) => {
+            PhonebookEntry.find()
+                .then(result => {
+                    res.send(result)
+                    mongoose.connection.close()
+                })
+        });
 });
 
 app.get('/info', (req, res) => {
