@@ -28,34 +28,7 @@ app.use(requestLogger);
 
 const now = new Date();
 
-// Function to generate a random number for id
-const generateRandomID = () => {
-    return Math.floor(Math.random() * 10000);
-}
-
-let persons = [
-    {
-        "id": 1,
-        "name": "Arto Hellas",
-        "number": "040-123456"
-    },
-    {
-        "id": 2,
-        "name": "Ada Lovelace",
-        "number": "39-44-5323523"
-    },
-    {
-        "id": 3,
-        "name": "Dan Abramov",
-        "number": "12-43-234345"
-    },
-    {
-        "id": 4,
-        "name": "Mary Poppendieck",
-        "number": "39-23-6423122"
-    }
-]
-
+let persons = [];
 
 app.get('/', (req, res) => {
     res.send('<h1>Server is running on port 3000!</h1>')
@@ -66,6 +39,7 @@ app.get('/api/persons', (req, res) => {
         .then((result) => {
             PhonebookEntry.find()
                 .then(result => {
+                    persons = result;
                     res.send(result)
                     mongoose.connection.close()
                 })
@@ -78,18 +52,27 @@ app.get('/info', (req, res) => {
 })
 
 app.get('/api/persons/:id', (req, res) => {
-    const personToReturn = persons.filter(person => person.id === Number(req.params.id))
-    res.send(personToReturn);
+    mongoose.connect(URL)
+        .then((result) => {
+            PhonebookEntry.find({ _id: req.params.id })
+                .then(result => {
+                    res.status(200);
+                    res.json(result)
+                    mongoose.connection.close()
+                })
+        });
 });
 
 app.delete('/api/persons/:id', (req, res) => {
-    let id = Number(req.params.id)
-    persons = persons.filter(person => person.id !== id)
-    res.status(204).end()
-});
-
-app.get('/test', (req, res) => {
-    res.send('test root is working!');
+    mongoose.connect(URL)
+        .then((result) => {
+            PhonebookEntry.deleteOne({ _id: req.params.id })
+                .then(result => {
+                    res.status(200);
+                    res.json(result)
+                    mongoose.connection.close()
+                })
+        });
 });
 
 app.post('/api/persons', (req, res) => {
@@ -100,29 +83,45 @@ app.post('/api/persons', (req, res) => {
             error: 'name or number is missing'
         })
     }
-
-    const newPerson = {
-        name: body.name,
-        number: body.number,
-        id: generateRandomID()
-    };
-    persons.push(newPerson);
+    mongoose.connect(URL)
+        .then((result) => {
+            const newPerson = new PhonebookEntry({
+                name: body.name,
+                number: body.number,
+            });
+            return newPerson.save();
+        })
+        .then(() => {
+            console.log('entry saved!')
+            return mongoose.connection.close();
+        })
+        .catch((err) => console.log(err))
     res.status(200);
     res.send('OK, got the data')
-
 });
 
+
 app.put('/api/persons/:id', (req, res) => {
-    let entryToUpdate = persons.filter(person => person.id === Number(req.params.id))[0];
-    let entryIndex = persons.indexOf(entryToUpdate)
 
-    entryToUpdate = { ...entryToUpdate, number: req.body.number }
-    persons[entryIndex] = entryToUpdate
+    const body = req.body;
 
-    res.send('Updated the entry');
-    res.status(204)
-
-})
+    if (!body.name || !body.number) {
+        return res.status(400).json({
+            error: 'name or number is missing'
+        })
+    }
+    mongoose.connect(URL)
+        .then((result) => {
+            PhonebookEntry.findByIdAndUpdate(req.params.id, { number: body.number })
+                .then(response => {
+                    res.status(200)
+                    res.json(response)
+                    mongoose.connection.close()
+                })
+                .catch((err) => console.log(err))
+        })
+        .catch((err) => console.log(err))
+});
 
 app.listen(PORT, () => {
     console.log(`Server is up and running on port ${PORT}`);
